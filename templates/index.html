@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Screening & Fitment Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for Radar Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --surface: #121826;
+            --surface-card: #182234;
+            --primary: #4f46e5;
+            --primary-glow: rgba(79, 70, 229, 0.45);
+            --accent: #06b6d4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(12px);
+            background: rgba(11, 15, 25, 0.85);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            background: linear-gradient(135deg, #818cf8, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2.2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 2.2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.6rem;
+            background: linear-gradient(180deg, #ffffff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+        }
+
+        /* Upload Container */
+        .upload-card {
+            background: var(--surface);
+            border: 2px dashed rgba(99, 102, 241, 0.35);
+            border-radius: 20px;
+            padding: 2.8rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .upload-card:hover, .upload-card.dragover {
+            border-color: var(--accent);
+            background: rgba(18, 24, 38, 0.9);
+            box-shadow: 0 0 35px var(--primary-glow);
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(99, 102, 241, 0.12);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            color: #818cf8;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            color: #fff;
+            padding: 0.9rem 2.2rem;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--primary-glow);
+        }
+
+        /* ================= HIGH-TECH SCANNING ANIMATION ================= */
+        .pipeline-card {
+            display: none;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-top: 2rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .radar-box {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .radar-circle {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid rgba(79, 70, 229, 0.2);
+            border-top-color: var(--accent);
+            border-right-color: #818cf8;
+            animation: spin 1s linear infinite;
+        }
+
+        .radar-pulse {
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.3) 0%, transparent 70%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .pipeline-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-width: 480px;
+            margin: 2rem auto 0;
+            text-align: left;
+        }
+
+        .step-item {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .step-item.active {
+            color: #38bdf8;
+            font-weight: 600;
+            background: rgba(56, 189, 248, 0.08);
+            border-color: rgba(56, 189, 248, 0.25);
+            transform: translateX(6px);
+        }
+
+        .step-item.done {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.06);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: all 0.3s;
+        }
+
+        .step-item.active .step-dot {
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .step-item.done .step-dot {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        /* ================= RESULTS DASHBOARD ================= */
+        .results-panel {
+            display: none;
+            margin-top: 2.5rem;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 1.8rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.8rem;
+        }
+
+        .badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            padding: 0.35rem 0.85rem;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.6rem;
+        }
+
+        .role-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 0.3rem;
+        }
+
+        .match-bar-wrap { margin: 1.2rem 0; }
+        .bar-labels { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; }
+        .bar-bg { background: rgba(255, 255, 255, 0.08); border-radius: 12px; height: 10px; overflow: hidden; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #06b6d4); border-radius: 12px; width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        .chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 0.5rem; }
+        .chip { padding: 0.4rem 0.85rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+        .chip-matched { background: rgba(79, 70, 229, 0.18); border: 1px solid rgba(79, 70, 229, 0.4); color: #a5b4fc; }
+        .chip-missing { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+
+        .decision-box { border-radius: 12px; padding: 1rem; margin-top: 0.8rem; font-size: 0.9rem; line-height: 1.5; }
+        .decision-fit { background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--success); color: #d1fae5; }
+        .decision-gap { background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--danger); color: #fee2e2; }
+
+        .chance-badge {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .chart-box {
+            position: relative;
+            height: 250px;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.9); } 50% { opacity: 0.8; transform: scale(1.1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            CognitiveHire ML
+        </div>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Real-Time Fitment Radar & NLP Pipeline</span>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Automated Resume Fitment & Skill Analytics</h1>
+            <p>Upload any resume (PDF, TXT, or Image scan). Live ML models extract features, project readiness, and build your candidate selection radar.</p>
+        </div>
+
+        <!-- File Upload Area -->
+        <div class="upload-card" id="dropArea">
+            <input type="file" id="fileInput" hidden accept=".pdf,.txt,.png,.jpg,.jpeg">
+            <div class="upload-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+            </div>
+            <h3>Drop your resume file here or click to browse</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 6px;">Supported: PDF, TXT, PNG, JPG (Max 16MB)</p>
+            <div id="fileSelectionText" style="color: var(--accent); margin-top: 12px; font-weight: 600;"></div>
+            <button class="action-btn" id="analyzeBtn" style="display:none;">Run Radar & ML Analysis</button>
+        </div>
+
+        <!-- Live Step-by-Step Processing Simulation -->
+        <div class="pipeline-card" id="pipelineCard">
+            <div class="radar-box">
+                <div class="radar-pulse"></div>
+                <div class="radar-circle"></div>
+            </div>
+            <h3 id="stepHeading" style="font-size: 1.25rem;">Parsing Document Structure...</h3>
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Real-time natural language processing & feature extraction</p>
+
+            <div class="pipeline-steps">
+                <div class="step-item" id="p1"><div class="step-dot"></div><span>Extracting text tokens & cleaning stop words</span></div>
+                <div class="step-item" id="p2"><div class="step-dot"></div><span>Transforming vectors via TF-IDF feature map</span></div>
+                <div class="step-item" id="p3"><div class="step-dot"></div><span>Running Multi-Class Machine Learning inference</span></div>
+                <div class="step-item" id="p4"><div class="step-dot"></div><span>Synthesizing Competency Radar & Selection Index</span></div>
+            </div>
+        </div>
+
+        <!-- Final Results Dashboard -->
+        <div class="results-panel" id="resultsPanel">
+            <div class="grid-2">
+                <!-- Left: Domain Fitment & Task Breakdown -->
+                <div class="card">
+                    <span class="badge" id="expBadge">Mid Level</span>
+                    <div class="role-title" id="predictedRole">Domain Role</div>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;" id="fileName"></p>
+
+                    <div class="match-bar-wrap">
+                        <div class="bar-labels">
+                            <span>Role Match Index</span>
+                            <span id="scoreText" style="font-weight: 700; color: var(--accent);">0%</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" id="scoreBar"></div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.2rem; font-weight: 700; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+                        ✓ Suitable Work & Purpose
+                    </div>
+                    <div class="decision-box decision-fit" id="purposeFit"></div>
+
+                    <div style="margin-top: 1.2rem; font-weight: 700; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+                        ✕ Incompatible Responsibilities
+                    </div>
+                    <div class="decision-box decision-gap" id="notFit"></div>
+
+                    <div style="margin-top: 1.2rem; font-weight: 700; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+                        Matched Domain Skills
+                    </div>
+                    <div class="chips-container" id="matchedChips"></div>
+
+                    <div style="margin-top: 1.2rem; font-weight: 700; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase;">
+                        Missing Prerequisite Skills
+                    </div>
+                    <div class="chips-container" id="missingChips"></div>
+                </div>
+
+                <!-- Right: Radar Graph & Shortlist Chances -->
+                <div style="display: flex; flex-direction: column; gap: 1.8rem;">
+                    <div class="card" style="text-align: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Candidate Shortlist Probability</span>
+                        <div class="chance-badge" id="chancePercent">0%</div>
+
+                        <div class="chart-box">
+                            <canvas id="candidateRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 0.8rem;">Cross-Role Compatibility</h3>
+                        <div id="alternateList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileSelectionText = document.getElementById('fileSelectionText');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const pipelineCard = document.getElementById('pipelineCard');
+        const resultsPanel = document.getElementById('resultsPanel');
+        let radarChartInstance = null;
+        let selectedFile = null;
+
+        dropArea.addEventListener('click', (e) => { if (e.target !== analyzeBtn) fileInput.click(); });
+        dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
+        dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            fileSelectionText.innerText = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            analyzeBtn.style.display = 'inline-flex';
+        }
+
+        analyzeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!selectedFile) return;
+
+            resultsPanel.style.display = 'none';
+            pipelineCard.style.display = 'block';
+
+            // Start Animation sequence
+            runPipelineAnimation();
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            fetch('/upload', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(res => {
+                if (!res.success) {
+                    alert('Error: ' + res.error);
+                    pipelineCard.style.display = 'none';
+                    return;
+                }
+                // Delay render slightly so user can enjoy full animation
+                setTimeout(() => renderResults(res), 1900);
+            })
+            .catch(() => {
+                pipelineCard.style.display = 'none';
+                alert('Connection failure with ML server.');
+            });
+        });
+
+        function runPipelineAnimation() {
+            const steps = [
+                { id: 'p1', heading: 'Tokenizing Resume Text...' },
+                { id: 'p2', heading: 'Building TF-IDF N-gram Matrix...' },
+                { id: 'p3', heading: 'Evaluating 8 Domain ML Classifiers...' },
+                { id: 'p4', heading: 'Synthesizing Radar & Probability Metrics...' }
+            ];
+
+            steps.forEach((s, idx) => {
+                setTimeout(() => {
+                    document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+                    const cur = document.getElementById(s.id);
+                    cur.classList.add('active');
+                    if (idx > 0) document.getElementById(steps[idx - 1].id).classList.add('done');
+                    document.getElementById('stepHeading').innerText = s.heading;
+                }, idx * 450);
+            });
+        }
+
+        function renderResults(res) {
+            pipelineCard.style.display = 'none';
+            resultsPanel.style.display = 'block';
+            const d = res.data;
+
+            document.getElementById('fileName').innerText = `Document: ${res.filename}`;
+            document.getElementById('predictedRole').innerText = d.primary_role;
+            document.getElementById('expBadge').innerText = d.experience_estimation;
+            document.getElementById('purposeFit').innerText = d.purpose_fit;
+            document.getElementById('notFit').innerText = d.not_suitable_for;
+            document.getElementById('chancePercent').innerText = d.metrics.hireability_chance + '%';
+
+            document.getElementById('scoreText').innerText = d.confidence + '%';
+            setTimeout(() => {
+                document.getElementById('scoreBar').style.width = d.confidence + '%';
+            }, 100);
+
+            // Chips
+            document.getElementById('matchedChips').innerHTML = d.matched_skills.length 
+                ? d.matched_skills.map(s => `<span class="chip chip-matched">✓ ${s.toUpperCase()}</span>`).join('')
+                : '<span style="color:var(--text-muted); font-size:0.85rem;">None</span>';
+
+            document.getElementById('missingChips').innerHTML = d.missing_skills.length
+                ? d.missing_skills.map(s => `<span class="chip chip-missing">✕ ${s.toUpperCase()}</span>`).join('')
+                : '<span style="color:var(--success); font-size:0.85rem;">All prerequisites satisfied!</span>';
+
+            // Alternate Roles
+            document.getElementById('alternateList').innerHTML = d.alternate_roles.map(r => `
+                <div style="display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border);">
+                    <span style="font-size:0.9rem;">${r.role}</span>
+                    <span style="font-weight:700; color:var(--accent);">${r.match_score}%</span>
+                </div>
+            `).join('');
+
+            // Draw Radar Chart
+            renderRadarGraph(d.metrics);
+            resultsPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderRadarGraph(metrics) {
+            const ctx = document.getElementById('candidateRadarChart').getContext('2d');
+            if (radarChartInstance) radarChartInstance.destroy();
+
+            radarChartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Technical Skills', 'Project Impact', 'Experience & Tenure', 'Domain Alignment', 'Keyword Density'],
+                    datasets: [{
+                        label: 'Competency Score',
+                        data: [
+                            metrics.skill_score,
+                            metrics.project_score,
+                            metrics.exp_score,
+                            metrics.hireability_chance,
+                            Math.min(100, Math.round((metrics.skill_score + metrics.project_score) / 2))
+                        ],
+                        backgroundColor: 'rgba(79, 70, 229, 0.25)',
+                        borderColor: '#06b6d4',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#818cf8',
+                        pointBorderColor: '#fff',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#94a3b8', font: { size: 11, weight: '600' } },
+                            ticks: { display: false, min: 0, max: 100 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
